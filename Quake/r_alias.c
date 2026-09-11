@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 
 extern cvar_t gl_overbright_models, gl_fullbrights, r_lerpmodels, r_lerpmove; //johnfitz
-extern cvar_t scr_fov, cl_gun_fovscale, cl_gun_x, cl_gun_y, cl_gun_z;
+extern cvar_t scr_fov, cl_gun_fovscale;
 extern cvar_t r_oit;
 
 //up to 16 color translated skins
@@ -586,15 +586,24 @@ static void R_DrawAliasModel_Real (entity_t *e, aliasmode_t mode)
 	//
 	if (e == &cl.viewent)
 	{
+		viewmodel_transform_t gun_transform;
+        V_GetViewModelTransform (&gun_transform);
+
 		if (r_refdef.basefov > 90.f && cl_gun_fovscale.value)
 		{
 			fovscale = tan (r_refdef.basefov * (0.5f * M_PI / 180.f));
 			fovscale = 1.f + (fovscale - 1.f) * cl_gun_fovscale.value;
 		}
 
-		VectorMA (lerpdata.origin, cl_gun_x.value * paliashdr->scale[0] * fovscale,	vright,	lerpdata.origin);
-		VectorMA (lerpdata.origin, cl_gun_y.value * paliashdr->scale[1] * fovscale,	vup,	lerpdata.origin);
-		VectorMA (lerpdata.origin, cl_gun_z.value * paliashdr->scale[2],			vpn,	lerpdata.origin);
+		VectorMA (lerpdata.origin,
+            gun_transform.offset[0] * paliashdr->scale[0] * fovscale,
+            vright, lerpdata.origin);
+        VectorMA (lerpdata.origin,
+            gun_transform.offset[1] * paliashdr->scale[1] * fovscale,
+            vup, lerpdata.origin);
+        VectorMA (lerpdata.origin,
+            gun_transform.offset[2] * paliashdr->scale[2],
+            vpn, lerpdata.origin);
 	}
 
 	//

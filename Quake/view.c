@@ -70,6 +70,44 @@ cvar_t	r_viewmodel_quake = {"r_viewmodel_quake", "0", CVAR_ARCHIVE};
 
 vec3_t	v_punchangles[2]; //johnfitz -- copied from cl.punchangle.  0 is current, 1 is previous value. never the same unless map just loaded
 
+extern cvar_t cl_gun_x, cl_gun_y, cl_gun_z;
+
+static cvar_t cl_gun_pitch = {"cl_gun_pitch", "0", CVAR_ARCHIVE};
+static cvar_t cl_gun_yaw   = {"cl_gun_yaw",   "0", CVAR_ARCHIVE};
+static cvar_t cl_gun_roll  = {"cl_gun_roll",  "0", CVAR_ARCHIVE};
+static cvar_t cl_gun_scale = {"cl_gun_scale", "1", CVAR_ARCHIVE};
+
+typedef struct gun_profile_s
+{
+    int weapon;
+    cvar_t x, y, z;
+    cvar_t pitch, yaw, roll;
+    cvar_t scale;
+} gun_profile_t;
+
+#define GUN_PROFILE(bit, name) { bit, \
+    {"cl_gun_" name "_x",     "0", CVAR_ARCHIVE}, \
+    {"cl_gun_" name "_y",     "0", CVAR_ARCHIVE}, \
+    {"cl_gun_" name "_z",     "0", CVAR_ARCHIVE}, \
+    {"cl_gun_" name "_pitch", "0", CVAR_ARCHIVE}, \
+    {"cl_gun_" name "_yaw",   "0", CVAR_ARCHIVE}, \
+    {"cl_gun_" name "_roll",  "0", CVAR_ARCHIVE}, \
+    {"cl_gun_" name "_scale", "1", CVAR_ARCHIVE} }
+
+static gun_profile_t gun_profiles[] =
+{
+    GUN_PROFILE (IT_AXE,              "axe"),
+    GUN_PROFILE (IT_SHOTGUN,          "shotgun"),
+    GUN_PROFILE (IT_SUPER_SHOTGUN,    "supershotgun"),
+    GUN_PROFILE (IT_NAILGUN,          "nailgun"),
+    GUN_PROFILE (IT_SUPER_NAILGUN,    "supernailgun"),
+    GUN_PROFILE (IT_GRENADE_LAUNCHER, "grenadelauncher"),
+    GUN_PROFILE (IT_ROCKET_LAUNCHER,  "rocketlauncher"),
+    GUN_PROFILE (IT_LIGHTNING,        "lightning"),
+};
+
+#undef GUN_PROFILE
+
 /*
 ===============
 V_CalcRoll
@@ -768,6 +806,7 @@ void V_CalcRefdef (void)
 	vec3_t		angles;
 	float		bob;
 	static float oldz = 0;
+	viewmodel_transform_t gun_transform;
 
 	V_DriftPitch ();
 
@@ -817,6 +856,9 @@ void V_CalcRefdef (void)
 
 	CalcGunAngle ();
 
+	V_GetViewModelTransform (&gun_transform);
+    VectorAdd (view->angles, gun_transform.angles, view->angles);
+
 	VectorCopy (ent->origin, view->origin);
 	view->origin[2] += cl.viewheight;
 
@@ -849,7 +891,8 @@ void V_CalcRefdef (void)
 	view->model = cl.model_precache[cl.stats[STAT_WEAPON]];
 	view->frame = cl.stats[STAT_WEAPONFRAME];
 	view->colormap = vid.colormap;
-	view->scale = ENTSCALE_DEFAULT;
+	view->scale = (byte)Q_rint (
+        CLAMP (1.0f, gun_transform.scale * ENTSCALE_DEFAULT, 255.0f));
 
 //johnfitz -- v_gunkick
 	if (v_gunkick.value == 1) //original quake kick
@@ -905,6 +948,48 @@ void V_RestoreAngles (void)
 {
 	entity_t *ent = &cl_entities[cl.viewentity];
 	VectorCopy (ent->msg_angles[0], ent->angles);
+}
+
+static gun_profile_t *V_GetGunProfile (void)
+{
+    size_t i;
+
+    for (i = 0; i < Q_COUNTOF (gun_profiles); ++i)
+        if (gun_profiles[i].weapon == cl.stats[STAT_ACTIVEWEAPON])
+            return &gun_profiles[i];
+
+    return NULL;
+}
+
+/*
+==================
+V_GetViewModelTransform
+
+Gets the view model transform of the active gun
+==================
+*/
+void V_GetViewModelTransform (viewmodel_transform_t *transform)
+{
+    gun_profile_t *profile = V_GetGunProfile ();
+
+    transform->offset[0] = cl_gun_x.value;
+    transform->offset[1] = cl_gun_y.value;
+    transform->offset[2] = cl_gun_z.value;
+    transform->angles[PITCH] = cl_gun_pitch.value;
+    transform->angles[YAW] = cl_gun_yaw.value;
+    transform->angles[ROLL] = cl_gun_roll.value;
+    transform->scale = cl_gun_scale.value;
+
+    if (!profile)
+        return;
+
+    transform->offset[0] += profile->x.value;
+    transform->offset[1] += profile->y.value;
+    transform->offset[2] += profile->z.value;
+    transform->angles[PITCH] += profile->pitch.value;
+    transform->angles[YAW] += profile->yaw.value;
+    transform->angles[ROLL] += profile->roll.value;
+    transform->scale *= profile->scale.value;
 }
 
 /*
@@ -968,6 +1053,17 @@ static void V_Crosshair_f (cvar_t *var)
 		crosshair_char = '+'; // Standard Quake crosshair
 }
 
+static void V_RegisterGunProfile (gun_profile_t *profile)
+{
+    Cvar_RegisterVariable (&profile->x);
+    Cvar_RegisterVariable (&profile->y);
+    Cvar_RegisterVariable (&profile->z);
+    Cvar_RegisterVariable (&profile->pitch);
+    Cvar_RegisterVariable (&profile->yaw);
+    Cvar_RegisterVariable (&profile->roll);
+    Cvar_RegisterVariable (&profile->scale);
+}
+
 /*
 =============
 V_Init
@@ -975,6 +1071,8 @@ V_Init
 */
 void V_Init (void)
 {
+	size_t i;
+
 	Cmd_AddCommand ("v_cshift", V_cshift_f);
 	Cmd_AddCommand ("bf", V_BonusFlash_f);
 	Cmd_AddCommand ("centerview", V_StartPitchDrift);
@@ -1013,5 +1111,12 @@ void V_Init (void)
 	Cvar_RegisterVariable (&v_gunkick); //johnfitz
 
 	Cvar_RegisterVariable (&r_viewmodel_quake); //MarkV
+	
+    Cvar_RegisterVariable (&cl_gun_pitch);
+    Cvar_RegisterVariable (&cl_gun_yaw);
+    Cvar_RegisterVariable (&cl_gun_roll);
+    Cvar_RegisterVariable (&cl_gun_scale);
+    for (i = 0; i < Q_COUNTOF (gun_profiles); ++i)
+        V_RegisterGunProfile (&gun_profiles[i]);
 }
 

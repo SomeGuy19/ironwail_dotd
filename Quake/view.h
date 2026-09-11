@@ -26,6 +26,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 extern	cvar_t		vid_gamma;
 extern	cvar_t		vid_contrast;
 
+typedef struct viewmodel_transform_s
+{
+    vec3_t	offset;
+    vec3_t	angles;
+    float	scale;
+} viewmodel_transform_t;
+
 extern float v_blend[4];
 
 void V_Init (void);
@@ -35,6 +42,7 @@ void V_UpdateBlend (void);
 void V_ResetEffects (void);
 float V_CalcRoll (vec3_t angles, vec3_t velocity);
 void V_RestoreAngles (void);
+void V_GetViewModelTransform (viewmodel_transform_t *transform);
 
 #endif	/* _QUAKE_VIEW_H */
 
