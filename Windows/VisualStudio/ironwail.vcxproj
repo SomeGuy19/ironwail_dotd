@@ -319,6 +319,7 @@ copy "$(SolutionDir)..\zlib\$(PlatformShortName)\*.dll" "$(TargetDir)"</Command>
     <ClCompile Include="..\..\Quake\snd_vorbis.c" />
     <ClCompile Include="..\..\Quake\snd_wave.c" />
     <ClCompile Include="..\..\Quake\snd_xmp.c" />
+    <ClCompile Include="..\..\Quake\spellinput.c" />
     <ClCompile Include="..\..\Quake\steam.c" />
     <ClCompile Include="..\..\Quake\strlcat.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -343,6 +344,7 @@ copy "$(SolutionDir)..\zlib\$(PlatformShortName)\*.dll" "$(TargetDir)"</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\Quake\sys_sdl_win.c" />
+    <ClCompile Include="..\..\Quake\offhand.c" />
     <ClCompile Include="..\..\Quake\view.c" />
     <ClCompile Include="..\..\Quake\wad.c" />
     <ClCompile Include="..\..\Quake\world.c" />
@@ -409,11 +411,13 @@ copy "$(SolutionDir)..\zlib\$(PlatformShortName)\*.dll" "$(TargetDir)"</Command>
     <ClInclude Include="..\..\Quake\snd_vorbis.h" />
     <ClInclude Include="..\..\Quake\snd_wave.h" />
     <ClInclude Include="..\..\Quake\snd_xmp.h" />
+    <ClInclude Include="..\..\Quake\spellinput.h" />
     <ClInclude Include="..\..\Quake\spritegn.h" />
     <ClInclude Include="..\..\Quake\steam.h" />
     <ClInclude Include="..\..\Quake\strl_fn.h" />
     <ClInclude Include="..\..\Quake\sys.h" />
     <ClInclude Include="..\..\Quake\vid.h" />
+    <ClInclude Include="..\..\Quake\offhand.h" />
     <ClInclude Include="..\..\Quake\view.h" />
     <ClInclude Include="..\..\Quake\wad.h" />
     <ClInclude Include="..\..\Quake\world.h" />

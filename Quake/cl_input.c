@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // rights reserved.
 
 #include "quakedef.h"
+#include "spellinput.h"
 
 extern cvar_t cl_maxpitch; //johnfitz -- variable pitch clamping
 extern cvar_t cl_minpitch; //johnfitz -- variable pitch clamping
@@ -429,6 +430,9 @@ void CL_SendMove (const usercmd_t *cmd)
 			bits |= 2;
 		in_jump.state &= ~2;
 
+		/* DotD: spellinput */
+		bits |= spellinput_bits ();
+
 		MSG_WriteByte (&buf, bits);
 
 		MSG_WriteByte (&buf, in_impulse);
@@ -498,5 +502,7 @@ void CL_InitInput (void)
 	Cmd_AddCommand ("+mlook", IN_MLookDown);
 	Cmd_AddCommand ("-mlook", IN_MLookUp);
 
+	/* DotD: spellinput */
+	spellinput_init ();
 }
 

@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_main.c
 
 #include "quakedef.h"
+#include "offhand.h"
 
 qboolean	r_cache_thrash;		// compatability
 
@@ -1127,9 +1128,8 @@ void R_DrawEntitiesOnList (qboolean alphapass) //johnfitz -- added parameter
 R_IsViewModelVisible
 =============
 */
-static qboolean R_IsViewModelVisible (void)
+static qboolean R_IsViewModelVisible (entity_t *e)
 {
-	entity_t *e = &cl.viewent;
 	if (!r_drawviewmodel.value || !r_drawentities.value || chase_active.value || scr_viewsize.value >= 130)
 		return false;
 
@@ -1148,21 +1148,46 @@ static qboolean R_IsViewModelVisible (void)
 
 /*
 =============
+R_GetVisibleViewModels
+
+Fills list (room for 2) with the visible view models (gun and off-hand)
+Returns the number of entities written
+=============
+*/
+static int R_GetVisibleViewModels (entity_t **list)
+{
+	entity_t	*candidates[2];
+	int			i, count = 0;
+
+	candidates[0] = &cl.viewent;
+	/* DotD: offhand */
+	candidates[1] = offhand_entity ();
+
+	for (i = 0; i < 2; i++)
+		if (R_IsViewModelVisible (candidates[i]))
+			list[count++] = candidates[i];
+
+	return count;
+}
+
+/*
+=============
 R_DrawViewModel -- johnfitz -- gutted
 =============
 */
 void R_DrawViewModel (void)
 {
-	entity_t *e = &cl.viewent;
+	entity_t *list[2];
+	int count = R_GetVisibleViewModels (list);
 
-	if (!R_IsViewModelVisible ())
+	if (!count)
 		return;
 
 	GL_BeginGroup ("View model");
 
 	// hack the depth range to prevent view model from poking into walls
 	GL_DepthRange (ZRANGE_VIEWMODEL);
-	R_DrawAliasModels (&e, 1);
+	R_DrawAliasModels (list, count);
 	GL_DepthRange (ZRANGE_FULL);
 
 	GL_EndGroup ();
@@ -1827,16 +1852,19 @@ void R_ShowTris (void)
 	R_DrawSpriteModels_ShowTris (entlist + ofs[2*mod_sprite], ofs[2*mod_sprite+2] - ofs[2*mod_sprite]);
 
 	// viewmodel
-	if (R_IsViewModelVisible ())
 	{
-		entity_t *e = &cl.viewent;
+		entity_t *vmlist[2];
+		int vmcount = R_GetVisibleViewModels (vmlist);
 
-		if (r_showtris.value != 1.f)
-			GL_DepthRange (ZRANGE_VIEWMODEL);
+		if (vmcount)
+		{
+			if (r_showtris.value != 1.f)
+				GL_DepthRange (ZRANGE_VIEWMODEL);
 
-		R_DrawAliasModels_ShowTris (&e, 1);
+			R_DrawAliasModels_ShowTris (vmlist, vmcount);
 
-		GL_DepthRange (ZRANGE_FULL);
+			GL_DepthRange (ZRANGE_FULL);
+		}
 	}
 
 	R_DrawParticles_ShowTris ();

@@ -347,6 +347,9 @@ typedef struct
 	int		state;			// low bit is down state
 } kbutton_t;
 
+void KeyDown (kbutton_t *b);
+void KeyUp (kbutton_t *b);
+
 extern	kbutton_t	in_mlook, in_klook;
 extern 	kbutton_t 	in_strafe;
 extern 	kbutton_t 	in_speed;

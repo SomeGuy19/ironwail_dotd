@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "bgmusic.h"
+#include "offhand.h"
 
 // we need to declare some mouse variables here, because the menu system
 // references them even when on a unix system.
@@ -117,6 +118,9 @@ void CL_ClearState (void)
 	//johnfitz
 
 	memset (v_punchangles, 0, sizeof (v_punchangles));
+
+	/* DotD: offhand */
+	offhand_reset ();
 }
 
 /*

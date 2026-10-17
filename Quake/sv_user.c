@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // sv_user.c -- server code for moving users
 
 #include "quakedef.h"
+#include "spellinput.h"
 
 edict_t	*sv_player;
 
@@ -466,6 +467,8 @@ void SV_ReadClientMove (usercmd_t *move)
 	bits = MSG_ReadByte ();
 	host_client->edict->v.button0 = bits & 1;
 	host_client->edict->v.button2 = (bits & 2)>>1;
+	/* DotD: spellinput */
+	spellinput_apply (host_client->edict, bits);
 
 	i = MSG_ReadByte ();
 	if (i)

@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //r_alias.c -- alias model rendering
 
 #include "quakedef.h"
+#include "offhand.h"
 
 extern cvar_t gl_overbright_models, gl_fullbrights, r_lerpmodels, r_lerpmove; //johnfitz
 extern cvar_t scr_fov, cl_gun_fovscale;
@@ -181,7 +182,8 @@ void R_SetupEntityTransform (entity_t *e, lerpdata_t *lerpdata)
 	}
 
 	//set up values
-	if (r_lerpmove.value && e != &cl.viewent && e->lerpflags & LERP_MOVESTEP)
+	/* DotD: offhand */
+	if (r_lerpmove.value && e != &cl.viewent && !offhand_is_entity (e) && e->lerpflags & LERP_MOVESTEP)
 	{
 		float s = (cls.demoplayback && cls.demospeed < 0.f) ? -1.f : 1.f;
 		if (e->lerpflags & LERP_FINISH)
@@ -245,7 +247,8 @@ void R_SetupAliasLighting (entity_t	*e)
 	}
 
 	// minimum light value on gun (24)
-	if (e == &cl.viewent)
+	/* DotD: offhand */
+	if (e == &cl.viewent || offhand_is_entity (e))
 	{
 		add = 72.0f - (lightcolor[0] + lightcolor[1] + lightcolor[2]);
 		if (add > 0.0f)
@@ -584,10 +587,15 @@ static void R_DrawAliasModel_Real (entity_t *e, aliasmode_t mode)
 	//
 	// viewmodel adjustments (position, fov distortion correction)
 	//
-	if (e == &cl.viewent)
+	/* DotD: offhand */
+	if (e == &cl.viewent || offhand_is_entity (e))
 	{
 		viewmodel_transform_t gun_transform;
-        V_GetViewModelTransform (&gun_transform);
+
+		if (e == &cl.viewent)
+			V_GetViewModelTransform (&gun_transform);
+		else
+			offhand_get_transform (&gun_transform);
 
 		if (r_refdef.basefov > 90.f && cl_gun_fovscale.value)
 		{

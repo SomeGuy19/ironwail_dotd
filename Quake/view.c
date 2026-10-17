@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // view.c -- player eye positioning
 
 #include "quakedef.h"
+#include "offhand.h"
 
 /*
 
@@ -785,6 +786,8 @@ void V_CalcIntermissionRefdef (void)
 	VectorCopy (ent->origin, r_refdef.vieworg);
 	VectorCopy (ent->angles, r_refdef.viewangles);
 	view->model = NULL;
+	/* DotD: offhand */
+	offhand_clear_model ();
 
 // allways idle in intermission
 	old = v_idlescale.value;
@@ -807,6 +810,7 @@ void V_CalcRefdef (void)
 	float		bob;
 	static float oldz = 0;
 	viewmodel_transform_t gun_transform;
+	vec3_t		offhand_angles;
 
 	V_DriftPitch ();
 
@@ -855,6 +859,9 @@ void V_CalcRefdef (void)
 	VectorCopy (cl.viewangles, view->angles);
 
 	CalcGunAngle ();
+
+	/* DotD: offhand */
+	VectorCopy (view->angles, offhand_angles);
 
 	V_GetViewModelTransform (&gun_transform);
     VectorAdd (view->angles, gun_transform.angles, view->angles);
@@ -931,6 +938,9 @@ void V_CalcRefdef (void)
 	}
 	else
 		oldz = ent->origin[2];
+
+	/* DotD: offhand */
+	offhand_update (ent, view->origin, offhand_angles);
 
 	if (chase_active.value)
 		Chase_UpdateForDrawing (); //johnfitz
@@ -1118,5 +1128,8 @@ void V_Init (void)
     Cvar_RegisterVariable (&cl_gun_scale);
     for (i = 0; i < Q_COUNTOF (gun_profiles); ++i)
         V_RegisterGunProfile (&gun_profiles[i]);
+
+	/* DotD: offhand */
+	offhand_init ();
 }
 
