@@ -749,6 +749,51 @@ static void PF_traceline (void)
 
 /*
 =================
+PF_tracebox
+
+DotD: like traceline, but sweeps a box. Against BSP models the box selects
+the nearest clipping hull (point / player / shambler size), like entity physics.
+
+tracebox (vector start, vector mins, vector maxs, vector end, float nomonsters, entity forent)
+=================
+*/
+static void PF_tracebox (void)
+{
+	float	*v1, *mins, *maxs, *v2;
+	trace_t	trace;
+	int	nomonsters;
+	edict_t	*ent;
+
+	v1 = G_VECTOR(OFS_PARM0);
+	mins = G_VECTOR(OFS_PARM1);
+	maxs = G_VECTOR(OFS_PARM2);
+	v2 = G_VECTOR(OFS_PARM3);
+	nomonsters = G_FLOAT(OFS_PARM4);
+	ent = G_EDICT(OFS_PARM5);
+
+	if (IS_NAN(v1[0]) || IS_NAN(v1[1]) || IS_NAN(v1[2]))
+		v1[0] = v1[1] = v1[2] = 0;
+	if (IS_NAN(v2[0]) || IS_NAN(v2[1]) || IS_NAN(v2[2]))
+		v2[0] = v2[1] = v2[2] = 0;
+
+	trace = SV_Move (v1, mins, maxs, v2, nomonsters, ent);
+
+	pr_global_struct->trace_allsolid = trace.allsolid;
+	pr_global_struct->trace_startsolid = trace.startsolid;
+	pr_global_struct->trace_fraction = trace.fraction;
+	pr_global_struct->trace_inwater = trace.inwater;
+	pr_global_struct->trace_inopen = trace.inopen;
+	VectorCopy (trace.endpos, pr_global_struct->trace_endpos);
+	VectorCopy (trace.plane.normal, pr_global_struct->trace_plane_normal);
+	pr_global_struct->trace_plane_dist =  trace.plane.dist;
+	if (trace.ent)
+		pr_global_struct->trace_ent = EDICT_TO_PROG(trace.ent);
+	else
+		pr_global_struct->trace_ent = EDICT_TO_PROG(qcvm->edicts);
+}
+
+/*
+=================
 PF_checkpos
 
 Returns true if the given entity can move to the given position from it's
@@ -3373,6 +3418,9 @@ builtindef_t pr_builtindefs[] =
 	{"min",						PF_BOTH(PF_min),				94,		DP_QC_MINMAXBOUND},	// float(float a, float b, ...)
 	{"max",						PF_BOTH(PF_max),				95,		DP_QC_MINMAXBOUND},	// float(float a, float b, ...)
 	{"bound",					PF_BOTH(PF_bound),				96,		DP_QC_MINMAXBOUND},	// float(float minimum, float val, float maximum)
+
+	/* DotD: tracebox */
+	{"tracebox",				PF_SSQC(PF_tracebox),			90},	// void(vector start, vector mins, vector maxs, vector end, float nomonsters, entity forent)
 
 	{"pow",						PF_BOTH(PF_pow),				97,		DP_QC_SINCOSSQRTPOW},	// float(float value, float exp)
 
