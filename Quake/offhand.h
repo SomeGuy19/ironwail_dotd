@@ -6,7 +6,9 @@
 CONTRACT: offhand
 Purpose:  DotD's second (left-hand) first-person view model.
           Model = cl.model_precache[cl.stats[OFFHAND_STAT_MODEL]] (0 = none),
-          frame = cl.stats[OFFHAND_STAT_FRAME]. Positioned with cvars
+          frame = cl.stats[OFFHAND_STAT_FRAME],
+          skin = cl.stats[OFFHAND_STAT_SKIN] (MD3: textures/<surface>_<n> = skin n).
+          Positioned with cvars
           cl_offhand_x/_y/_z/_pitch/_yaw/_roll/_scale (independent of cl_gun_*,
           except cl_gun_fovscale, which applies to both view models).
           The stat indices must match DotD/src/stats.qh.
@@ -16,6 +18,7 @@ Depends:  client.h (cl), view.h (viewmodel_transform_t), render.h (entity_t)
 
 #define OFFHAND_STAT_MODEL	29
 #define OFFHAND_STAT_FRAME	30
+#define OFFHAND_STAT_SKIN	24
 
 /* registers the cl_offhand_* cvars. Call once from V_Init. */
 void offhand_init (void);

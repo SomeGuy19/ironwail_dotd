@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "spellinput.h"
+#include "qcmovement.h"
 
 edict_t	*sv_player;
 
@@ -462,6 +463,8 @@ void SV_ReadClientMove (usercmd_t *move)
 	move->forwardmove = MSG_ReadShort ();
 	move->sidemove = MSG_ReadShort ();
 	move->upmove = MSG_ReadShort ();
+	/* DotD: qcmovement */
+	qcmovement_apply (host_client->edict, move);
 
 // read buttons
 	bits = MSG_ReadByte ();

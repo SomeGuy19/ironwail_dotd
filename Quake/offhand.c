@@ -78,6 +78,7 @@ void offhand_update (const entity_t *player, const vec3_t origin, const vec3_t a
 
 	offhand_ent.model = model;
 	offhand_ent.frame = cl.stats[OFFHAND_STAT_FRAME];
+	offhand_ent.skinnum = cl.stats[OFFHAND_STAT_SKIN];
 	offhand_ent.colormap = vid.colormap;
 	offhand_ent.alpha = cl.viewent.alpha;
 	offhand_ent.scale = (byte)Q_rint (CLAMP (1.0f, transform.scale * ENTSCALE_DEFAULT, 255.0f));
